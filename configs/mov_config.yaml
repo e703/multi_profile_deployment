@@ -23,13 +23,14 @@ enabled_toolsets:
   - terminal
   - memory
   - skills
+  - kanban
   - todo
 plugins:
   enabled:
     - agnes_router_mov
   entries:
     agnes_router_mov:
-      workspace_root: ~/workspace
+      workspace_root: /home/alan/workspace
       video_endpoint: https://apihub.agnes-ai.com/v1/videos
       video_model: agnes-video-v2.0
       video_timeout: 300

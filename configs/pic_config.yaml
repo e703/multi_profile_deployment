@@ -23,6 +23,7 @@ enabled_toolsets:
   - terminal
   - memory
   - skills
+  - kanban
   - todo
 plugins:
   enabled:
