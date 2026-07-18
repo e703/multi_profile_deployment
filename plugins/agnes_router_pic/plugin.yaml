@@ -1,0 +1,38 @@
+name: agnes_router_pic
+version: 1.1.0
+description: >
+  Agnes AI image generation for Hermes Agent — pic variant.
+  Generates images safely into a configurable workspace directory.
+  Tool: generate_image_via_pic01 (text-to-image, image-to-image, multi-image).
+provides_tools:
+  - generate_image_via_pic01
+requires_env:
+  - name: AGNES_API_KEY
+    description: Agnes AI API key for image generation
+    secret: true
+configurable:
+  workspace_root:
+    description: Base directory for generated media
+    default: ~/workspace
+  image_endpoint:
+    description: Image generation API endpoint
+    default: https://apihub.agnes-ai.com/v1/images/generations
+  image_model:
+    description: Default image generation model
+    default: agnes-image-2.0-flash
+  image_timeout:
+    description: Request timeout for image generation (seconds)
+    default: 180
+    min: 30
+    max: 600
+  download_timeout:
+    description: Timeout for downloading generated media (seconds)
+    default: 300
+    min: 30
+    max: 1800
+  max_retries:
+    description: Max retry attempts for transient errors
+    default: 10
+  retry_delay:
+    description: Delay between retries (seconds)
+    default: 30.0

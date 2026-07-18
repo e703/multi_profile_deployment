@@ -1,0 +1,27 @@
+model:
+  default: deepseek-v4-pro
+provider: custom:api.bjlab.tk
+custom_providers:
+- name: api.bjlab.tk
+  base_url: https://api.bjlab.tk/v1
+  api_key: sk-...
+  api_mode: chat_completions
+fallback_model:
+  provider: custom
+  model: agnes-2.0-flash
+  base_url: https://apihub.agnes-ai.com/v1
+  key_env: AGNES_CHAT_API_KEY
+terminal:
+  backend: local
+  cwd: /home/alan/workspace
+  home_mode: profile
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+enabled_toolsets:
+- file
+- terminal
+- memory
+- skills
+- web
+- todo
