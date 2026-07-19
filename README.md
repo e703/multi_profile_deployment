@@ -54,6 +54,8 @@ multi_profile_deployment/
 │   │
 │   └── volcengine_tts/                    # TTS 技能（占位，需自行创建 SKILL.md）
 │
+├── scripts/                              # 工具脚本
+│   └── onedrive_share.sh                 # OneDrive 上传+分享链接生成
 ├── configs/                              # 各 profile 的 config.yaml 模板
 ├── souls/                                # 各 profile 的人格设定
 ├── gitconfigs/                           # 各 profile 的 git 提交身份
@@ -218,6 +220,88 @@ sudo loginctl enable-linger alan
 - **大文件**：超过 20MB 的文件不通过飞书传输，源文件保存在 workspace 中
 - **视频异步**：视频生成是异步的，使用 monitor_video.py 后台轮询（30s 间隔），不能使用 cron（最小间隔 30m）
 
+## 临时网盘配置（OneDrive + rclone）
+
+当生成的文件超过飞书传输限制（约 20MB）时，通过 OneDrive 上传并生成分享链接。
+
+### 1. 安装 rclone
+
+```bash
+sudo apt install rclone -y
+```
+
+### 2. 生成授权令牌（在 Windows 电脑上操作）
+
+下载 rclone：https://rclone.org/downloads/ → `rclone-v1.69.x-windows-amd64.zip`
+
+```cmd
+# 解压到 D:\rclone，打开命令行执行
+cd D:\rclone
+rclone.exe authorize "onedrive"
+```
+
+会自动打开浏览器，登录微软账号并授权。授权成功后命令行会输出一段 JSON token，复制全部内容。
+
+### 3. 配置服务器
+
+```bash
+# 创建配置文件
+mkdir -p /home/alan/.config/rclone
+
+# 写入配置文件（将下方 token 替换为第2步获取的 JSON）
+cat > /home/alan/.config/rclone/rclone.conf << 'EOF'
+[onedrive]
+type = onedrive
+drive_id = <你的DriveID>
+drive_type = personal
+token = <第2步获取的完整JSON>
+EOF
+
+# 获取 drive_id（用上面配置的 token 查询）
+# 从 token JSON 中提取 access_token，然后执行：
+# curl -H "Authorization: Bearer <access_token>" https://graph.microsoft.com/v1.0/me/drive
+# 返回结果中的 "id" 字段即为 drive_id
+
+# 复制到 Hermes profile home 目录（home_mode: profile 下必须）
+for p in portal pic mov tts coding research personal writing; do
+  mkdir -p /home/alan/.hermes/profiles/$p/home/.config/rclone
+  cp /home/alan/.config/rclone/rclone.conf /home/alan/.hermes/profiles/$p/home/.config/rclone/rclone.conf
+done
+```
+
+### 4. 验证
+
+```bash
+rclone ls onedrive:
+# 应该能看到 OneDrive 中的文件列表
+```
+
+### 5. 上传脚本
+
+`scripts/onedrive_share.sh` 提供一键上传+生成分享链接：
+
+```bash
+# 上传文件到 OneDrive（自动按年月归类到 Documents/agnes_share/）
+bash scripts/onedrive_share.sh /path/to/file.mp4
+
+# 输出示例：
+# 📤 上传: file.mp4 (3.1 MB)
+# ✅ 上传完成
+# 🔗 https://1drv.ms/u/c/...
+```
+
+### 6. 大文件处理策略
+
+生成的文件超过 20MB 时，自动走 OneDrive 上传通道：
+
+```
+生成文件 → 检查大小
+  ├─ ≤ 20MB → 直接通过飞书发送
+  └─ > 20MB → rclone 上传到 OneDrive → 生成分享链接 → 通过飞书发送链接
+```
+
+> ⚠️ rclone 生成的 OneDrive 分享链接默认匿名可访问，不支持通过命令行设置密码和有效期。如需更高安全性，请登录 OneDrive 网页端手动设置：打开链接 → 右上角 ⋯ → 管理访问权限 → 设置密码和到期时间。
+
 ## 文件说明
 
 | 文件 | 说明 |
@@ -230,7 +314,8 @@ sudo loginctl enable-linger alan
 | skills/agnes_video_async_monitor/* | 视频异步轮询技能，安装到 mov 的 skills/media/ |
 | skills/agnes_media_workflow/* | 自动生成：编排工作流技能（portal 用） |
 | skills/generation_info_report/* | 自动生成：生成结果信息报告规范 |
-| skills/volcengine_tts/ | TTS 技能占位，需自行创建 SKILL.md |
+| skills/volcengine_tts/ | TTS 技能，调用火山引擎豆包语音克隆音色 API |
+| scripts/onedrive_share.sh | OneDrive 上传+分享链接生成脚本 |
 | *_config.yaml | 各 profile 的完整配置模板（含 fallback 和 home_mode 配置） |
 | *_SOUL.md | 各 profile 的人格设定 |
 | *_gitconfig | 各 profile 的 git 提交身份 |
