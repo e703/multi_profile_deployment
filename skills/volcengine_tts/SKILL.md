@@ -33,7 +33,7 @@ REQID="$(date +%s)$(shuf -i 1000-9999 -n 1)"
 
 # 请求并解码 Base64 音频数据
 curl -s -X POST 'https://openspeech.bytedance.com/api/v1/tts' \
-  -H "x-api-key: $VOLC_...KEY" \
+  -H "x-api-key: $VOLC_TTS_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "app": {
@@ -77,7 +77,7 @@ OUTPUT="output_slow.mp3"
 REQID="$(date +%s)$(shuf -i 1000-9999 -n 1)"
 
 curl -s -X POST 'https://openspeech.bytedance.com/api/v1/tts' \
-  -H "x-api-key: $VOLC_...KEY" \
+  -H "x-api-key: $VOLC_TTS_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "app": { "cluster": "volcano_icl" },
